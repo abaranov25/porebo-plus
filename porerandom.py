@@ -1,5 +1,4 @@
 from porebo_plus import sampler, f
-import sys
 from plot_kappa_v_iteration import plot
 
 num_trials = 50

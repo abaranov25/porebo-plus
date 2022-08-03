@@ -1,5 +1,5 @@
 import sys
-from openbteplus.workflows import Lattice2DNongray
+from openbteplus.workflows import wf_4
 import openbteplus.utils as util
 from optim import BOMinimizer
 import numpy as np
@@ -50,7 +50,7 @@ def f(x, num_pores, given_porosity, save = False, random = False):
 
     # Uses OpenBTEPlus to calculate the associated kappa value with the geometry
     time1 = time.time()
-    results =  Lattice2DNongray.run(L = given_L,\
+    results =  wf_4.run(L = given_L,\
         material  = 'Si_rta',\
         porosity  = given_porosity,\
         positions = poly_list,\
