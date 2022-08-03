@@ -2,7 +2,7 @@ from porebo_plus import sampler, f
 import sys
 from plot_kappa_v_iteration import plot
 
-num_trials = 30
+num_trials = 50
 
 
 for num_pores in [1,2,3,4,5]:

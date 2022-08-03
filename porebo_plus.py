@@ -103,10 +103,10 @@ if __name__ == "__main__":
     '''
     If running this file, perform the Bayesian Optimization and return the minimum kappa pore configuration
     '''
-    num_iters = 30
-    num_init = 5
-    for num_pores in [4]:
-        for porosity in [0.1]:
+    num_iters = 50
+    num_init = 10
+    for num_pores in [1,2,3,4,5]:
+        for porosity in [0.05, 0.1, 0.15]:
             kappa_per_iteration = []
             print("Starting trials for " + str(num_pores) + " pores and " + str(porosity) + " porosity")
             BO_obj = BOMinimizer(f=f, bounds=[(-0.5, 0.5)] * 2 * num_pores, n_init=num_init, n_calls=num_iters, n_sample=300, sampler=sampler, noise=1e-3, kernel="Matern", acq="EI", num_pores = num_pores, porosity = porosity)
