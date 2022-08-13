@@ -1,5 +1,3 @@
-from openbte import Geometry, Solver, Material, Plot
-from openbte.utils import *
 from os import mkdir
 import numpy as np
 
@@ -212,7 +210,8 @@ def config(x_len: float, y_len: float, side_len: float, num_pores: int, buffer_l
         return poly_centers
 
 if __name__ == '__main__':
-
+    pass
+    '''
     x_length = 200
     y_length = 170
     side_length = 8
@@ -239,3 +238,4 @@ if __name__ == '__main__':
 
     # Returns kappa
     np.savetxt('kappa.out', sol['kappa'])
+    '''
