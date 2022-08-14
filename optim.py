@@ -93,15 +93,5 @@ class BOMinimizer(object):
             print(f"evaluating X = {cand}...")
             self.observe(cand)
             self.relearn()
-        self.plot()
         return self.Xbest, self.ybest
-
-    def plot(self):
-        plt.plot(list(range(self.n_calls)), self.ytrain, linestyle='-',
-                markersize=8, linewidth=1.5,
-                markerfacecolor='white',
-                markeredgecolor='black',
-                markeredgewidth=1.2)
-        plt.savefig("kappa_v_trial.png")
-
 

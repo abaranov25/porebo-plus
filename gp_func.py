@@ -189,21 +189,6 @@ def config(x_len: float, y_len: float, side_len: float, num_pores: int, buffer_l
 
                     reflected_poly.append(poly)
 
-    # Saves each polygon in a separate file
-
-    dir_name = 'Poly_list'
-    try:
-        mkdir(dir_name)
-        print("Directory ", dir_name, " Created ")
-
-    except FileExistsError:
-        pass
-
-    for i in range(num_pores):
-
-      filename = dir_name + '/poly_list_' + str(i) + '.out'
-      np.savetxt(filename, poly_centers[i])
-
     if return_poly_list:
         return reflected_poly, poly_centers
     else:

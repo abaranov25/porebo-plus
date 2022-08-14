@@ -28,4 +28,3 @@ def plot(kappas, num_init, num_pores, porosity, num_iters, algorithm):
     plt.legend(loc='upper right')
     plt.savefig('plots/' + algorithm + '_num_pores_' + str(num_pores) + '_porosity_' + str(porosity) +'.png')
     plt.close()
-

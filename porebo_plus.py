@@ -14,9 +14,7 @@ Parameters
     L: float
         Length of the geometry along x and y directions [nm]
     num_pores: int
-        Number of pores
-    dmin: float
-        Minimum dimension?
+        Number of pores in each quadrant
     porosity: float
         Percentage of the total geometry covered by pores
     step_input: float
@@ -27,7 +25,7 @@ Parameters
         Minimum distance that pores must be from each other and from the walls of the geometry [nm] —
         set this parameter to 0 if a buffer is not needed
 
-Sys inputs
+Depreciated sys inputs
     [ 'porebo.py' , num_pores , 100 * porosity ]
 """
 kappa_per_iteration = []
@@ -35,10 +33,12 @@ given_L = 100
 step_input = given_L / 20
 buffer_len = 0.5
 
-def f(x, num_pores, given_porosity, save = False, random = False):
-    # Defining parameters and additional helper parameters
-    side_len = (given_porosity * given_L ** 2/(4*num_pores)) ** 0.5 
 
+
+def f(x, num_pores, given_porosity, save = False, random = False):
+    '''
+    Runs the BTE solver on the given sample of pore centers.
+    '''
     # Creates the list of edges used to generate the pore geometry
     poly_list = []
     for i in range(0, len(x)-1, 2):
@@ -50,24 +50,25 @@ def f(x, num_pores, given_porosity, save = False, random = False):
 
     # Uses OpenBTEPlus to calculate the associated kappa value with the geometry
     time1 = time.time()
-    results =  wf_4.run(L = given_L,\
+    results = wf_4.run(L = given_L,\
         material  = 'Si_rta',\
         porosity  = given_porosity,\
         positions = poly_list,\
-        mesh_size = 5,\
+        mesh_size = 7,\
         shape     = 'square')
 
     results.vtu(results,repeat=[2,2,1])
     time2 = time.time()
     print("Took ", time2-time1, " sec")
 
+    # Saves the kappa value for the given sample of pore centers if save is True
     if save:
         if random:
-            np.savetxt('saved_random_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [results.bte.kappa_eff])
-            np.savetxt('saved_random_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)        
+            savetxt('./saved_random_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [results.bte.kappa_eff])
+            savetxt('./saved_random_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)        
         else:
-            np.savetxt('saved_bo_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [results.bte.kappa_eff])
-            np.savetxt('saved_bo_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)
+            savetxt('./saved_bo_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [results.bte.kappa_eff])
+            savetxt('./saved_bo_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)
 
     kappa_per_iteration.append(results.bte.kappa_eff)
     return results.bte.kappa_eff
@@ -99,12 +100,24 @@ def sampler(num_pores, porosity, n=1):
 
 
 
+def savetxt(filename, data):
+    '''
+    Saves the data in the given filename.
+    '''
+    with open(filename, 'w') as f:
+        if len(data) == 1:
+            f.write(data)
+        else:
+            f.write(str(data))
+    
+
+
 if __name__ == "__main__":
     '''
     If running this file, perform the Bayesian Optimization and return the minimum kappa pore configuration
     '''
-    num_iters = 50
-    num_init = 10
+    num_iters = 5
+    num_init = 1
     for num_pores in [1,2,3,4,5]:
         for porosity in [0.05, 0.1, 0.15]:
             kappa_per_iteration = []
@@ -117,5 +130,4 @@ if __name__ == "__main__":
 
             plot(kappa_per_iteration, num_init, num_pores, porosity, num_iters, algorithm = "porebo")
     
-
             f(Xbest, num_pores, porosity, save=True)
