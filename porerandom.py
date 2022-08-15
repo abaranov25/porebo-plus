@@ -1,11 +1,14 @@
+from pandas_datareader import test
 from porebo_plus import sampler, f
 from plot_kappa_v_iteration import plot
+from params import params
 
-num_trials = 50
+num_trials = params['num_iters']
+tested_num_pores = params['tested_num_pores']
+tested_porosities = params['tested_porosities']
 
-
-for num_pores in [1,2,3,4,5]:
-    for porosity in [0.05,0.1,0.15]:
+for num_pores in tested_num_pores:
+    for porosity in tested_porosities:
         print("Starting trials for " + str(num_pores) + " pores and " + str(porosity) + " porosity")
 
         # stores the minimum kappa and pore configuration that produces that kappa

@@ -1,13 +1,11 @@
-import sys
+import os
 from openbteplus.workflows import wf_4
-import openbteplus.utils as util
 from optim import BOMinimizer
 import numpy as np
-import matplotlib.pyplot as plt
 import gp_func
-import argparse
 from plot_kappa_v_iteration import plot
 import time
+from params import params
 
 """
 Parameters
@@ -29,10 +27,14 @@ Depreciated sys inputs
     [ 'porebo.py' , num_pores , 100 * porosity ]
 """
 kappa_per_iteration = []
-given_L = 100
-step_input = given_L / 20
-buffer_len = 0.5
-
+tested_num_pores = params['tested_num_pores']
+tested_porosities = params['tested_porosities']
+given_L = params['L']
+step_input = params['step_input']
+buffer_len = params['buffer_len']
+num_iters = params['num_iters']
+num_init = params['num_init']
+initialize_folders = params['initialize_folders']
 
 
 def f(x, num_pores, given_porosity, save = False, random = False):
@@ -56,8 +58,7 @@ def f(x, num_pores, given_porosity, save = False, random = False):
         positions = poly_list,\
         mesh_size = 7,\
         shape     = 'square')
-
-    results.vtu(results,repeat=[2,2,1])
+        
     time2 = time.time()
     print("Took ", time2-time1, " sec")
 
@@ -100,26 +101,27 @@ def sampler(num_pores, porosity, n=1):
 
 
 
-def savetxt(filename, data):
-    '''
-    Saves the data in the given filename.
-    '''
-    with open(filename, 'w') as f:
-        if len(data) == 1:
-            f.write(data)
-        else:
-            f.write(str(data))
-    
+def initialize():
+    dirNames = ['./saved_bo_kappas', '.saved_bo_poly_lists', './saved_random_kappas', './saved_random_poly_lists', './plots']
+    for dirName in dirNames:
+        try:    
+            os.mkdir(dirName)    
+            print('Directory ', dirName, ' Created')    
+        except FileExistsError:
+            pass
+
 
 
 if __name__ == "__main__":
     '''
     If running this file, perform the Bayesian Optimization and return the minimum kappa pore configuration
     '''
-    num_iters = 5
-    num_init = 1
-    for num_pores in [1,2,3,4,5]:
-        for porosity in [0.05, 0.1, 0.15]:
+
+    if initialize_folders:
+        initialize()
+
+    for num_pores in tested_num_pores:
+        for porosity in tested_porosities:
             kappa_per_iteration = []
             print("Starting trials for " + str(num_pores) + " pores and " + str(porosity) + " porosity")
             BO_obj = BOMinimizer(f=f, bounds=[(-0.5, 0.5)] * 2 * num_pores, n_init=num_init, n_calls=num_iters, n_sample=300, sampler=sampler, noise=1e-3, kernel="Matern", acq="EI", num_pores = num_pores, porosity = porosity)
