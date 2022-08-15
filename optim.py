@@ -52,14 +52,12 @@ class BOMinimizer(object):
         A helper function for ask, this function finds the expected improvement
         for each set of pore centers and returns the greatest one
         '''
-        np.savetxt('X', X)
         if self.acq == "EI":
             mu, std = self.model.predict(X, return_std=True)
             Z = (self.ybest - mu) / (std + 1e-3)
             EI = (self.ybest - mu) * norm.cdf(Z) + std * norm.pdf(Z)
             EI = np.where(std != 0, EI, 0)
             idx = np.argmax(EI)
-            np.savetxt('idx', [idx])
             try:
                 idx = int(idx[0])
             except:

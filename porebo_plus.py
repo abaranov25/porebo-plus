@@ -58,7 +58,7 @@ def f(x, num_pores, given_porosity, save = False, random = False):
         positions = poly_list,\
         mesh_size = 7,\
         shape     = 'square')
-        
+
     time2 = time.time()
     print("Took ", time2-time1, " sec")
 
