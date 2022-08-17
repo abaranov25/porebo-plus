@@ -7,5 +7,4 @@ params = {
     'num_iters': 5,
     'num_init': 1,
     'initialize_folders': True,
-    'continue_trials_after_exception': False,
 }

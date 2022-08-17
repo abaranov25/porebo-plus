@@ -102,7 +102,7 @@ def sampler(num_pores, porosity, n=1):
 
 
 def initialize():
-    dirNames = ['./saved_bo_kappas', './saved_bo_poly_lists', './saved_random_kappas', './saved_random_poly_lists', './plots']
+    dirNames = ['./saved_bo_kappas', './saved_bo_poly_lists', './saved_random_kappas', './saved_random_poly_lists', './plots', './errors']
     for dirName in dirNames:
         try:    
             os.mkdir(dirName)    

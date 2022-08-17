@@ -6,6 +6,7 @@ from params import params
 
 class BOMinimizer(object):
     def __init__(self, f, bounds, n_init, n_calls, n_sample=10000, sampler=None, noise=1e-3, kernel="Matern", acq="EI", num_pores = -1, porosity = -1):
+        self.error_count = 0
         self.f = f
         self.num_pores = num_pores
         self.porosity = porosity
@@ -52,13 +53,12 @@ class BOMinimizer(object):
             print("Sample successfully observed")
         
         except RuntimeError as e:
-            print("Sample failed to observe")
-            if params['continue_trials_after_exception']:
-                print("Continuing with next sample")
-                self.minimize()
-            else:
-                print("Stopping after exception")
-                raise e
+            
+            np.savetxt("error_" + str(self.error_count) + "_X.txt", sample)
+            np.savetxt("error_" + str(self.error_count) + "_y.txt", obj)
+            self.error_count += 1
+            print("Sample failed to observe\nContinuing with next sample")
+            self.minimize()
 
 
     def choose(self, X):
