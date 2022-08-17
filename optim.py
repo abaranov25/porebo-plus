@@ -33,19 +33,28 @@ class BOMinimizer(object):
         and the set of centers to the training's x-values. Then, if the kappa value is at a
         minimum, highlight the pore arrangement as the best one.
         '''
-        print('observing the sample now...')
-        obj = self.f(sample, self.num_pores, self.porosity)
-        self.Xtrain[self.n, :] = sample
-        self.ytrain[self.n] = obj
-        self.n += 1
+        try:
+            print('Observing the sample now')
+            
+            obj = self.f(sample, self.num_pores, self.porosity)
+            self.Xtrain[self.n, :] = sample
+            self.ytrain[self.n] = obj
+            self.n += 1
 
-        if self.ybest is None:
-            self.ybest = obj
-            self.Xbest = sample
+            if self.ybest is None:
+                self.ybest = obj
+                self.Xbest = sample
+            
+            if obj < self.ybest:
+                self.ybest = obj
+                self.Xbest = sample
+
+            print("Sample successfully observed")
         
-        if obj < self.ybest:
-            self.ybest = obj
-            self.Xbest = sample
+        except RuntimeError as e:
+            print("Sample failed to observe")
+            self.minimize()
+
 
     def choose(self, X):
         '''
