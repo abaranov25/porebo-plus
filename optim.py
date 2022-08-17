@@ -2,7 +2,7 @@ from sklearn import gaussian_process as gp
 from scipy.stats import norm
 import numpy as np
 import matplotlib.pyplot as plt
-
+from params import params
 
 class BOMinimizer(object):
     def __init__(self, f, bounds, n_init, n_calls, n_sample=10000, sampler=None, noise=1e-3, kernel="Matern", acq="EI", num_pores = -1, porosity = -1):
@@ -53,7 +53,12 @@ class BOMinimizer(object):
         
         except RuntimeError as e:
             print("Sample failed to observe")
-            self.minimize()
+            if params['continue_trials_after_exception']:
+                print("Continuing with next sample")
+                self.minimize()
+            else:
+                print("Stopping after exception")
+                raise e
 
 
     def choose(self, X):
