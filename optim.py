@@ -54,11 +54,11 @@ class BOMinimizer(object):
         
         except RuntimeError as e:
             
-            np.savetxt("error_" + str(self.error_count) + "_X.txt", sample)
-            np.savetxt("error_" + str(self.error_count) + "_y.txt", obj)
+            sample.append(self.porosity)
+            np.savetxt("errors/error_" + str(self.error_count) + "_X.txt", sample)
             self.error_count += 1
             print("Sample failed to observe\nContinuing with next sample")
-            self.minimize()
+            pass
 
 
     def choose(self, X):

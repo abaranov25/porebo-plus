@@ -16,12 +16,14 @@ for porosity in tested_porosities:
     kappa_plots.append(temp_kappas)
 
 for i, kappa_plot in enumerate(kappa_plots):
-    plt.plot(tested_num_pores, kappa_plot, label = "Porosity = " + tested_porosities[i])
+    plt.plot(tested_num_pores, kappa_plot, 'o-', label = "Porosity = " + str(tested_porosities[i]))
 
 plt.legend(loc='upper right')
+plt.title('Kappa vs Number of Pores and Porosity')
 plt.xlabel('# of Pores')
 plt.ylabel('Min Kappa')
-plt.savefig('plot_trials_bo.png')
+plt.savefig('plots/plot_trials_bo.png')
+plt.close()
 
 kappa_plots = []
 for porosity in tested_porosities:
@@ -33,9 +35,10 @@ for porosity in tested_porosities:
     kappa_plots.append(temp_kappas)
 
 for i, kappa_plot in enumerate(kappa_plots):
-    plt.plot(tested_num_pores, kappa_plot, label = "Porosity = " + tested_porosities[i])
+    plt.plot(tested_num_pores, kappa_plot, 'o-', label = "Porosity = " + str(tested_porosities[i]))
 
 plt.legend(loc='upper right')
 plt.xlabel('# of Pores')
 plt.ylabel('Min Kappa')
-plt.savefig('plot_trials_random.png')
+plt.title('Kappa vs Number of Pores and Porosity')
+plt.savefig('plots/plot_trials_random.png')
