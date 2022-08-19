@@ -60,6 +60,7 @@ class BOMinimizer(object):
             print("Sample failed to observe\nContinuing with next sample")
             pass
 
+        return None
 
     def choose(self, X):
         '''

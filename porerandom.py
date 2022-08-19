@@ -18,7 +18,7 @@ for num_pores in tested_num_pores:
         trials_left = num_trials
 
         # Runs some number of samples with random pore configurations
-        while trials_left != 0:
+        while trials_left > 0:
             samples = sampler(num_pores, porosity, trials_left)
             for sample in samples:
                 try:
@@ -30,6 +30,7 @@ for num_pores in tested_num_pores:
                     trials_left -= 1
                 except:
                     pass
+            print("Trials left: " + str(trials_left))
 
         print("ybest:", min_kappa)
         print("xbest:", config)
