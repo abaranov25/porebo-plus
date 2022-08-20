@@ -20,6 +20,8 @@ for num_pores in tested_num_pores:
         # Runs some number of samples with random pore configurations
         while trials_left > 0:
             samples = sampler(num_pores, porosity, trials_left)
+            if type(samples[0]) != list:
+                samples = [samples]
             for sample in samples:
                 try:
                     kappa = f(sample, num_pores, porosity)
