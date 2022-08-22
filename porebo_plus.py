@@ -8,24 +8,13 @@ import time
 from params import params
 
 """
-Parameters
-    L: float
-        Length of the geometry along x and y directions [nm]
-    num_pores: int
-        Number of pores in each quadrant
-    porosity: float
-        Percentage of the total geometry covered by pores
-    step_input: float
-        step size for the BTE solver (smaller means more accurate but slower)
-    side_len: float
-        Length of the pores [nm]. Calculated based on the given porosity and number of pores.
-    buffer_len: float
-        Minimum distance that pores must be from each other and from the walls of the geometry [nm] —
-        set this parameter to 0 if a buffer is not needed
+This script runs the trials for Bayesian Optimization with the parameters
+defined in params.py. 
 
-Depreciated sys inputs
-    [ 'porebo.py' , num_pores , 100 * porosity ]
+Inside this script are f(), sampler(), and initialize(), all of which are explained further below
 """
+
+# Initializing values for the trials
 kappa_per_iteration = []
 tested_num_pores = params['tested_num_pores']
 tested_porosities = params['tested_porosities']
@@ -34,10 +23,13 @@ step_input = params['step_input']
 buffer_len = params['buffer_len']
 num_iters = params['num_iters']
 num_init = params['num_init']
+num_samples = params['num_samples']
 initialize_folders = params['initialize_folders']
+desired_kappa = params['desired_kappa']
 
 
-def f(x, num_pores, given_porosity, save = False, random = False):
+
+def f(x, num_pores, given_porosity, save = False, random = False, desired_kappa = 0):
     '''
     Runs the BTE solver on the given sample of pore centers.
     '''
@@ -56,23 +48,27 @@ def f(x, num_pores, given_porosity, save = False, random = False):
         material  = 'Si_rta',\
         porosity  = given_porosity,\
         positions = poly_list,\
-        mesh_size = 7,\
+        mesh_size = step_input,\
         shape     = 'square')
-
     time2 = time.time()
     print("Took ", time2-time1, " sec")
+
+    # updated_kappa is the square error between measured thermal conductivity and the desired thermal conductivity
+    updated_kappa = (desired_kappa - results.bte.kappa_eff) ** 2 
 
     # Saves the kappa value for the given sample of pore centers if save is True
     if save:
         if random:
-            np.savetxt('./saved_random_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [results.bte.kappa_eff])
-            np.savetxt('./saved_random_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)        
+            np.savetxt('./saved_random_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [updated_kappa])
+            np.savetxt('./saved_random_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)  
+            np.savetxt('./saved_random_kappa_v_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', kappa_per_iteration)      
         else:
-            np.savetxt('./saved_bo_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [results.bte.kappa_eff])
+            np.savetxt('./saved_bo_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [updated_kappa])
             np.savetxt('./saved_bo_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)
+            np.savetxt('./saved_bo_kappa_v_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', kappa_per_iteration)
 
-    kappa_per_iteration.append(results.bte.kappa_eff)
-    return results.bte.kappa_eff
+    kappa_per_iteration.append(updated_kappa)
+    return updated_kappa
 
 
 
@@ -102,10 +98,13 @@ def sampler(num_pores, porosity, n=1):
 
 
 def initialize():
-    dirNames = ['./saved_bo_kappas', './saved_bo_poly_lists', './saved_random_kappas', './saved_random_poly_lists', './plots', './errors']
+    '''
+    If initialize_folders is set to True in 
+    '''
+    dirNames = ['./saved_bo_kappa_per_iteration', './saved_random_kappa_per_iteration', './saved_bo_kappas', './saved_bo_poly_lists', './saved_random_kappas', './saved_random_poly_lists', './plots', './errors']
     for dirName in dirNames:
         try:    
-            os.mkdir(dirName)    
+            os.mkdir(dirName)
             print('Directory ', dirName, ' Created')    
         except FileExistsError:
             pass
@@ -124,7 +123,7 @@ if __name__ == "__main__":
         for porosity in tested_porosities:
             kappa_per_iteration = []
             print("Starting trials for " + str(num_pores) + " pores and " + str(porosity) + " porosity")
-            BO_obj = BOMinimizer(f=f, bounds=[(-0.5, 0.5)] * 2 * num_pores, n_init=num_init, n_calls=num_iters, n_sample=300, sampler=sampler, noise=1e-3, kernel="Matern", acq="EI", num_pores = num_pores, porosity = porosity)
+            BO_obj = BOMinimizer(f=f, bounds=[(-0.5, 0.5)] * 2 * num_pores, n_init=num_init, n_calls=num_iters, n_sample=num_samples, sampler=sampler, noise=1e-3, kernel="Matern", acq="EI", num_pores = num_pores, porosity = porosity)
 
             Xbest, ybest = BO_obj.minimize()
             print("ybest:", ybest)
