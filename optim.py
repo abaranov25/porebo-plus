@@ -4,8 +4,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from params import params
 
+'''
+This script runs the Bayesian Optimization within a class, with the 
+main method being minimize(), from which all the other functions
+are called. This script is called in porebo_plus.py.
+'''
+
 class BOMinimizer(object):
-    def __init__(self, f, bounds, n_init, n_calls, n_sample=10000, sampler=None, noise=1e-3, kernel="Matern", acq="EI", num_pores = -1, porosity = -1):
+    def __init__(self, f, bounds, n_init, n_calls, n_sample=10000, sampler=None, noise=1e-3, kernel="Matern", acq="EI", num_pores = -1, porosity = -1, desired_kappa = 0):
         self.error_count = 0
         self.f = f
         self.num_pores = num_pores
@@ -27,6 +33,7 @@ class BOMinimizer(object):
         self.n = 0
         self.kernel = gp.kernels.Matern()
         self.model = gp.GaussianProcessRegressor(kernel=self.kernel, normalize_y=True)
+        self.desired_kappa = desired_kappa
 
     def observe(self, sample):
         '''
@@ -37,7 +44,7 @@ class BOMinimizer(object):
         try:
             print('Observing the sample now')
             
-            obj = self.f(sample, self.num_pores, self.porosity)
+            obj = self.f(sample, self.num_pores, self.porosity, desired_kappa = self.desired_kappa)
             self.Xtrain[self.n, :] = sample
             self.ytrain[self.n] = obj
             self.n += 1

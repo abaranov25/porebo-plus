@@ -2,6 +2,16 @@ import matplotlib.pyplot as plt
 import os
 from params import params
 
+
+'''
+This script can be used to plot the minimum value of kappa for every trial 
+to compare between Bayesian Optimization and Random Search.
+
+It will generate one plot for each of BO and RS for every specified
+amount of number of pores and porosity.
+
+This is not included in run_scripts.sh and must be ran separately.
+'''
 curdir = os.getcwd()
 tested_num_pores = params['tested_num_pores']
 tested_porosities = params['tested_porosities']

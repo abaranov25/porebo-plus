@@ -1,11 +1,18 @@
 from pandas_datareader import test
-from porebo_plus import sampler, f
-from plot_kappa_v_iteration import plot
+from porebo_plus import sampler, f, plot
 from params import params
+
+'''
+This script runs a Random Search for every specified number of pores
+and porosity. It does so by grabbing random pore arrangements and finding
+the kappa or square error for each, rather than optimizing. This
+script uses the same sampler() and f() functions as porebo_plus.
+'''
 
 num_trials = params['num_iters']
 tested_num_pores = params['tested_num_pores']
 tested_porosities = params['tested_porosities']
+desired_kappa = params['desired_kappa']
 
 for num_pores in tested_num_pores:
     for porosity in tested_porosities:
@@ -24,7 +31,7 @@ for num_pores in tested_num_pores:
                 samples = [samples]
             for sample in samples:
                 try:
-                    kappa = f(sample, num_pores, porosity)
+                    kappa = f(sample, num_pores, porosity, desired_kappa = desired_kappa)
                     kappa_per_iteration.append(kappa)
                     if kappa < min_kappa or not config:
                         min_kappa = kappa

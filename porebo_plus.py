@@ -3,9 +3,9 @@ from openbteplus.workflows import wf_4
 from optim import BOMinimizer
 import numpy as np
 import gp_func
-from plot_kappa_v_iteration import plot
 import time
 from params import params
+import matplotlib.pyplot as plt
 
 """
 This script runs the trials for Bayesian Optimization with the parameters
@@ -33,6 +33,7 @@ def f(x, num_pores, given_porosity, save = False, random = False, desired_kappa 
     '''
     Runs the BTE solver on the given sample of pore centers.
     '''
+    global kappa_per_iteration
     # Creates the list of edges used to generate the pore geometry
     poly_list = []
     for i in range(0, len(x)-1, 2):
@@ -54,20 +55,25 @@ def f(x, num_pores, given_porosity, save = False, random = False, desired_kappa 
     print("Took ", time2-time1, " sec")
 
     # updated_kappa is the square error between measured thermal conductivity and the desired thermal conductivity
-    updated_kappa = (desired_kappa - results.bte.kappa_eff) ** 2 
+    if desired_kappa != 0:
+        updated_kappa = (desired_kappa - results.bte.kappa_eff) ** 2 
+    else:
+        updated_kappa = results.bte.kappa_eff
 
     # Saves the kappa value for the given sample of pore centers if save is True
     if save:
         if random:
             np.savetxt('./saved_random_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [updated_kappa])
             np.savetxt('./saved_random_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)  
-            np.savetxt('./saved_random_kappa_v_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', kappa_per_iteration)      
+            np.savetxt('./saved_random_kappa_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', kappa_per_iteration)      
         else:
             np.savetxt('./saved_bo_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [updated_kappa])
             np.savetxt('./saved_bo_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)
-            np.savetxt('./saved_bo_kappa_v_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', kappa_per_iteration)
+            np.savetxt('./saved_bo_kappa_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', kappa_per_iteration)
+        kappa_per_iteration = []
+    else:
+        kappa_per_iteration.append(updated_kappa)
 
-    kappa_per_iteration.append(updated_kappa)
     return updated_kappa
 
 
@@ -99,7 +105,8 @@ def sampler(num_pores, porosity, n=1):
 
 def initialize():
     '''
-    If initialize_folders is set to True in 
+    If initialize_folders is set to True in params.py, we create directories
+    to store the results.
     '''
     dirNames = ['./saved_bo_kappa_per_iteration', './saved_random_kappa_per_iteration', './saved_bo_kappas', './saved_bo_poly_lists', './saved_random_kappas', './saved_random_poly_lists', './plots', './errors']
     for dirName in dirNames:
@@ -111,11 +118,54 @@ def initialize():
 
 
 
+def plot(kappas, num_init, num_pores, porosity, num_iters, algorithm):
+    '''
+    Given a list of kappa values corresponding to each iteration, 
+    plots these kappa values and also the minimum kappa value that 
+    occurs after every iteration.
+    '''
+    min_kappa_per_iteration = []
+
+    # Adds either the current value to kappa or the previous minimum
+    for kappa in kappas:
+        if (min_kappa_per_iteration and kappa < min_kappa_per_iteration[-1]) or not min_kappa_per_iteration:
+            min_kappa_per_iteration.append(kappa)
+
+        else:
+            min_kappa_per_iteration.append(min_kappa_per_iteration[-1])
+    
+    iterations = list(range(num_iters))
+
+    # labels the graph depending on whether we are finding the minimum
+    # kappa or optimizing for a specific kappa
+    if params['desired_kappa'] == 0:
+        label_kappa = "Kappa Per Iteration"
+        label_min_kappa = "Minimum Kappa Per Iteration"
+        y_label = "Kappa"
+        title = "Kappa v Iteration"
+    else:
+        label_kappa = "Square Error Per Iteration"
+        label_min_kappa = "Minimum Square Error Per Iteration"
+        y_label = "Square Error"
+        title = "Convergence Plot"
+
+    plt.plot(iterations, kappas, 'ro-', alpha = 0.7, label = label_kappa)
+    plt.plot(iterations, min_kappa_per_iteration, 'bo-', label = label_min_kappa)
+    if algorithm == 'porebo':
+        plt.axvspan(-0.3,num_init - 0.7, alpha = 0.4, color = 'gray', label = 'Initialization')
+    plt.xlabel('Iteration')
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.legend(loc='upper right')
+    plt.savefig('plots/' + algorithm + '_num_pores_' + str(num_pores) + '_porosity_' + str(porosity) +'.png')
+    plt.close()
+
+
+
 if __name__ == "__main__":
     '''
     If running this file, perform the Bayesian Optimization and return the minimum kappa pore configuration
     '''
-
     if initialize_folders:
         initialize()
 
@@ -123,7 +173,7 @@ if __name__ == "__main__":
         for porosity in tested_porosities:
             kappa_per_iteration = []
             print("Starting trials for " + str(num_pores) + " pores and " + str(porosity) + " porosity")
-            BO_obj = BOMinimizer(f=f, bounds=[(-0.5, 0.5)] * 2 * num_pores, n_init=num_init, n_calls=num_iters, n_sample=num_samples, sampler=sampler, noise=1e-3, kernel="Matern", acq="EI", num_pores = num_pores, porosity = porosity)
+            BO_obj = BOMinimizer(f=f, bounds=[(-0.5, 0.5)] * 2 * num_pores, n_init=num_init, n_calls=num_iters, n_sample=num_samples, sampler=sampler, noise=1e-3, kernel="Matern", acq="EI", num_pores = num_pores, porosity = porosity, desired_kappa = desired_kappa)
 
             Xbest, ybest = BO_obj.minimize()
             print("ybest:", ybest)
@@ -131,4 +181,4 @@ if __name__ == "__main__":
 
             plot(kappa_per_iteration, num_init, num_pores, porosity, num_iters, algorithm = "porebo")
     
-            f(Xbest, num_pores, porosity, save=True)
+            f(Xbest, num_pores, porosity, desired_kappa = desired_kappa, save=True)

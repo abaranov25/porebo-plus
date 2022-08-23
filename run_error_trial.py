@@ -1,5 +1,12 @@
 from porebo_plus import f
 
+'''
+This script can run OpenBTE Plus on a pore configuration that
+threw an error during the trials to find bugs in the OpenBTE
+source code. This must be run with the same parameters in params.py
+as the original trials, or else the error may not get caught.
+'''
+
 num = 0 # Modify for which error sample you want to view in case multiple trials don't work
 input = None # the input is the list of coordinates for pore centers followed by the porosity
 
