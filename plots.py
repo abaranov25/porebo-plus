@@ -43,9 +43,9 @@ def plot_square_error_per_iteration():
             plt.plot(iterations, random_min_sq_errors, 'y-', label = 'Random Search Min Error')
             plt.plot(iterations, bo_min_sq_errors, 'b-', label = 'Bayesian Optimization Min Error')
             if display_every_iter:
-                plt.axvspan(-0.3,num_init - 0.7, alpha = 0.4, color = 'gray', label = 'Initialization for BO')
-                plt.plot(iterations, random_sq_errors, 'yo', alpha = 0.7, label = 'Random Search Error')
-                plt.plot(iterations, bo_sq_errors, 'bo', alpha = 0.7, label = 'Bayesian Optimization Error')
+                plt.plot(iterations, random_sq_errors, 'yo', alpha = 0.5, label = 'Random Search Error')
+                plt.plot(iterations, bo_sq_errors, 'bo', alpha = 0.5, label = 'Bayesian Optimization Error')
+                plt.axvspan(-0.3,num_init - 0.7, alpha = 0.3, color = 'gray', label = 'Initialization for BO')
             plt.title("Convergence Plot")
             plt.xlabel("Number of calls, n")
             plt.ylabel("Minimum Square Error after n calls")
@@ -76,12 +76,13 @@ def plot_kappa_per_iteration():
 
             if not attempt_minimize:
                 # generate the plot for closest kappa v iteration for both trials
-                plt.plot(iterations, random_kappas_closest, 'yo-', label = 'Random Search')
-                plt.plot(iterations, bo_kappas_closest, 'bo-', label = 'Bayesian Optimization')
+                plt.plot(iterations, random_kappas_closest, 'yo-', label = 'Random Search Closest')
+                plt.plot(iterations, bo_kappas_closest, 'bo-', label = 'Bayesian Optimization Closest')
+                plt.plot(iterations, desired_kappa * len(iterations), 'r--', label = 'Desired Kappa')
                 if display_every_iter:
-                    plt.axvspan(-0.3,num_init - 0.7, alpha = 0.4, color = 'gray', label = 'Initialization for BO')
-                    plt.plot(iterations, random_kappas, 'yo', alpha = 0.7, label = 'Random Search Kappas')
-                    plt.plot(iterations, bo_kappas, 'bo', alpha = 0.7, label = 'Bayesian Optimization Kappas')
+                    plt.plot(iterations, random_kappas, 'yo', alpha = 0.5, label = 'Random Search Kappas')
+                    plt.plot(iterations, bo_kappas, 'bo', alpha = 0.5, label = 'Bayesian Optimization Kappas')
+                    plt.axvspan(-0.3,num_init - 0.7, alpha = 0.3, color = 'gray', label = 'Initialization for BO')
                 plt.title("Convergence Plot")
                 plt.xlabel("Number of calls, n")
                 plt.ylabel("Closest Kappa after n calls")
@@ -91,13 +92,12 @@ def plot_kappa_per_iteration():
 
             else:
                 # generate the plot for min kappa v iteration for both trials
-                plt.plot(iterations, random_kappas_min, 'yo-', label = 'Random Search')
-                plt.plot(iterations, bo_kappas_min, 'bo-', label = 'Bayesian Optimization')
-                plt.plot(iterations, [desired_kappa] * len(iterations), 'r--', label = 'Desired Kappa')
+                plt.plot(iterations, random_kappas_min, 'yo-', label = 'Random Search Minimum')
+                plt.plot(iterations, bo_kappas_min, 'bo-', label = 'Bayesian Optimization Minimum')
                 if display_every_iter:
-                    plt.axvspan(-0.3,num_init - 0.7, alpha = 0.4, color = 'gray', label = 'Initialization for BO')
-                    plt.plot(iterations, random_kappas, 'yo', alpha = 0.7, label = 'Random Search Kappas')
-                    plt.plot(iterations, bo_kappas, 'bo', alpha = 0.7, label = 'Bayesian Optimization Kappas')
+                    plt.plot(iterations, random_kappas, 'yo', alpha = 0.5, label = 'Random Search Kappas')
+                    plt.plot(iterations, bo_kappas, 'bo', alpha = 0.5, label = 'Bayesian Optimization Kappas')
+                    plt.axvspan(-0.3,num_init - 0.7, alpha = 0.3, color = 'gray', label = 'Initialization for BO')
                 plt.title("Minimum Kappa Per Iteration")
                 plt.xlabel("Number of calls, n")
                 plt.ylabel("Min Kappa after n calls")
