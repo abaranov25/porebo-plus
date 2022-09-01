@@ -13,17 +13,21 @@ buffer_len = params['buffer_len']
 initialize_folders = params['initialize_folders']
 attempt_minimize = params['attempt_minimize']
 
-kappa_per_iteration = []
-sq_error_per_iteration = []
+kappa_x_per_iteration = []
+kappa_y_per_iteration = []
+norm_error_per_iteration = []
+kappa_norm_per_iteration = []
 
 
 
-def f(x, num_pores, given_porosity, save = False, random = False, desired_kappa = 0):
+def f(x, num_pores, given_porosity, save = False, random = False, desired_kappa_x = 0, desired_kappa_y = 0):
     '''
     Runs the BTE solver on the given sample of pore centers.
     '''
-    global kappa_per_iteration
-    global sq_error_per_iteration
+    global kappa_x_per_iteration
+    global kappa_y_per_iteration
+    global norm_error_per_iteration
+    global kappa_norm_per_iteration
     # Creates the list of edges used to generate the pore geometry
     poly_list = []
     for i in range(0, len(x)-1, 2):
@@ -35,7 +39,7 @@ def f(x, num_pores, given_porosity, save = False, random = False, desired_kappa 
 
     # Uses OpenBTEPlus to calculate the associated kappa value with the geometry
     time1 = time.time()
-    results = wf_4.run(L = given_L,\
+    res_x, res_y = wf_4.run(L = given_L,\
         material  = 'Si_rta',\
         porosity  = given_porosity,\
         positions = poly_list,\
@@ -44,32 +48,40 @@ def f(x, num_pores, given_porosity, save = False, random = False, desired_kappa 
     time2 = time.time()
     print("Took ", time2-time1, " sec")
 
-    # updated_kappa is the square error between measured thermal conductivity and the desired thermal conductivity
-    kappa = results.bte.kappa_eff
-    sq_error = (desired_kappa - kappa) ** 2 
+    # norm error is the error between the result kappa and desired kappa
+    kappa_x = res_x.bte.kappa_eff
+    kappa_y = res_y.bte.kappa_eff
+    kappa_norm = (kappa_x ** 2 + kappa_y ** 2) ** 0.5
+    norm_error = ((kappa_x - desired_kappa_x) ** 2 + (kappa_y - desired_kappa_y) ** 2) ** 0.5
 
     # Saves the kappa value for the given sample of pore centers if save is True
     if save:
         if random:
-            np.savetxt('./saved_random_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [kappa])
-            np.savetxt('./saved_random_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)  
-            np.savetxt('./saved_random_kappa_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', kappa_per_iteration)      
-            np.savetxt('./saved_random_sq_error_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', sq_error_per_iteration) 
+            algo = 'random'
         else:
-            np.savetxt('./saved_bo_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [kappa])
-            np.savetxt('./saved_bo_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)
-            np.savetxt('./saved_bo_kappa_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', kappa_per_iteration)
-            np.savetxt('./saved_bo_sq_error_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', sq_error_per_iteration) 
-        kappa_per_iteration = []
-        sq_error_per_iteration = []
+            algo = 'bo'
+        np.savetxt('./saved_' + algo + '_kappa_x_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', kappa_x_per_iteration)
+        np.savetxt('./saved_' + algo + '_kappa_y_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', kappa_y_per_iteration)
+        np.savetxt('./saved_' + algo + '_poly_lists/poly_list_num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', x)
+        np.savetxt('./saved_' + algo + '_kappas/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', [kappa_x, kappa_y])
+        np.savetxt('./saved_' + algo + '_sq_error_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', norm_error_per_iteration)
+        np.savetxt('./saved_' + algo + '_kappa_norm_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(given_porosity) + '.out', kappa_norm_per_iteration)
+        kappa_x_per_iteration = []
+        kappa_y_per_iteration = []
+        norm_error_per_iteration = []
+        kappa_norm_per_iteration = []
     else:
-        kappa_per_iteration.append(kappa)
-        sq_error_per_iteration.append(sq_error)
+        kappa_x_per_iteration.append(kappa_x)
+        kappa_y_per_iteration.append(kappa_y)
+        norm_error_per_iteration.append(norm_error)
+        kappa_norm_per_iteration.append(kappa_norm)
 
     if attempt_minimize:
-        return kappa
+        # If we want to minimize, we return the norm of kappa
+        return kappa_norm
     else:
-        return sq_error
+        # Otherwise, we return the distance between kappa and desired kappa
+        return norm_error
 
 
 
@@ -103,7 +115,20 @@ def initialize():
     If initialize_folders is set to True in params.py, we create directories
     to store the results.
     '''
-    dirNames = ['./saved_bo_sq_error_per_iteration/', './saved_random_sq_error_per_iteration/', './saved_bo_kappa_per_iteration', './saved_random_kappa_per_iteration', './saved_bo_kappas', './saved_bo_poly_lists', './saved_random_kappas', './saved_random_poly_lists', './plots', './errors']
+    dirNames = ['./saved_bo_sq_error_per_iteration/', 
+                './saved_random_sq_error_per_iteration/', 
+                './saved_bo_kappa_x_per_iteration', 
+                './saved_bo_kappa_y_per_iteration', 
+                './saved_random_kappa_x_per_iteration', 
+                './saved_random_kappa_y_per_iteration', 
+                './saved_bo_kappa_norm_per_iteration',
+                './saved_random_kappa_norm_per_iteration',
+                './saved_bo_kappas', 
+                './saved_bo_poly_lists', 
+                './saved_random_kappas', 
+                './saved_random_poly_lists', 
+                './plots', 
+                './errors']
     for dirName in dirNames:
         try:    
             os.mkdir(dirName)
@@ -128,20 +153,20 @@ def min_per_iteration(items):
 
 
 
-def closest_per_iteration(items):
+def closest_per_iteration(items, desired):
     '''
     Given a list of kappa values per iteration, returns a new
     list of the kappa value closest to the desired kappa
     up to that iteration.
     '''
-    desired_kappa = params['desired_kappa']
-    closest_per_iteration = []
+    closest_kappas = []
     for item in items:
-        if (closest_per_iteration and abs(item - desired_kappa) < abs(closest_per_iteration[-1] - desired_kappa)) or not closest_per_iteration:
-            closest_per_iteration.append(item)
+        if not closest_kappas or abs(item - desired) < abs(closest_kappas[-1] - desired):
+            closest_kappas.append(item)
         else:
-            closest_per_iteration.append(closest_per_iteration[-1])
-    return closest_per_iteration
+            closest_kappas.append(closest_kappas[-1])
+
+    return closest_kappas
 
 
 

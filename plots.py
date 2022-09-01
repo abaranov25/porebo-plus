@@ -14,7 +14,8 @@ porosity and number of pores per quadrant.
 curdir = os.getcwd()
 tested_num_pores = params['tested_num_pores']
 tested_porosities = params['tested_porosities']
-desired_kappa = params['desired_kappa']
+desired_kappa_x = params['desired_kappa_x']
+desired_kappa_y = params['desired_kappa_y']
 display_every_iter = params['display_every_iter']
 num_init = params['num_init']
 attempt_minimize = params['attempt_minimize']
@@ -40,17 +41,17 @@ def plot_square_error_per_iteration():
                 bo_min_sq_errors = min_per_iteration(bo_sq_errors)
 
             # generate the plot for min kappa v iteration for both trials
-            plt.plot(iterations, random_min_sq_errors, 'y-', label = 'Random Search Min Error')
-            plt.plot(iterations, bo_min_sq_errors, 'b-', label = 'Bayesian Optimization Min Error')
+            plt.plot(iterations, random_min_sq_errors, 'y-', label = 'Random Search Min Norm Error')
+            plt.plot(iterations, bo_min_sq_errors, 'b-', label = 'Bayesian Optimization Min Norm Error')
             if display_every_iter:
-                plt.plot(iterations, random_sq_errors, 'yo', alpha = 0.5, label = 'Random Search Error')
-                plt.plot(iterations, bo_sq_errors, 'bo', alpha = 0.5, label = 'Bayesian Optimization Error')
+                plt.plot(iterations, random_sq_errors, 'yo', alpha = 0.5, label = 'RS Norm Error')
+                plt.plot(iterations, bo_sq_errors, 'bo', alpha = 0.5, label = 'BO Norm Error')
                 plt.axvspan(-0.3,num_init - 0.7, alpha = 0.3, color = 'gray', label = 'Initialization for BO')
             plt.title("Convergence Plot")
             plt.xlabel("Number of calls, n")
-            plt.ylabel("Minimum Square Error after n calls")
+            plt.ylabel("Minimum Norm Error after n calls")
             plt.legend(loc='upper right')
-            plt.savefig('./plots/sq_error_convergence_plot_num_pores_' + str(num_pores) + '_porosity_' + str(porosity) +'.png')
+            plt.savefig('./plots/norm_error_convergence_plot_num_pores_' + str(num_pores) + '_porosity_' + str(porosity) +'.png')
             plt.close()
 
 
@@ -63,25 +64,36 @@ def plot_kappa_per_iteration():
     for num_pores in tested_num_pores:
         for porosity in tested_porosities:
             # scrape the kappa data for bo and random trial
-            with open(curdir + '/saved_random_kappa_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(porosity) + '.out') as f:
-                random_kappas = [float(kappa) for kappa in f.read().split('\n') if kappa != '']
-                random_kappas_closest = closest_per_iteration(random_kappas)
-                random_kappas_min = min_per_iteration(random_kappas)
+            with open(curdir + '/saved_random_kappa_x_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(porosity) + '.out') as f:
+                random_kappas_x = [float(kappa) for kappa in f.read().split('\n') if kappa != '']
+                random_kappas_closest_x = closest_per_iteration(random_kappas_x, desired_kappa_x)
+                random_kappas_min_x = min_per_iteration(random_kappas_x)
 
-            with open(curdir + '/saved_bo_kappa_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(porosity) + '.out') as f:
-                bo_kappas = [float(kappa) for kappa in f.read().split('\n') if kappa != '']
-                bo_kappas_closest = closest_per_iteration(bo_kappas)
-                bo_kappas_min = min_per_iteration(bo_kappas)
+            with open(curdir + '/saved_random_kappa_y_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(porosity) + '.out') as f:
+                random_kappas_y = [float(kappa) for kappa in f.read().split('\n') if kappa != '']
+                random_kappas_closest_y = closest_per_iteration(random_kappas_y, desired_kappa_y)
+                random_kappas_min_y = min_per_iteration(random_kappas_y)
+
+            with open(curdir + '/saved_bo_kappa_x_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(porosity) + '.out') as f:
+                bo_kappas_x = [float(kappa) for kappa in f.read().split('\n') if kappa != '']
+                bo_kappas_closest_x = closest_per_iteration(bo_kappas_x, desired_kappa_x)
+                bo_kappas_min_x = min_per_iteration(bo_kappas_x)
+
+            with open(curdir + '/saved_bo_kappa_y_per_iteration/num_pores_' + str(num_pores) + '_porosity_' + str(porosity) + '.out') as f:
+                bo_kappas_y = [float(kappa) for kappa in f.read().split('\n') if kappa != '']
+                bo_kappas_closest_y = closest_per_iteration(bo_kappas_y, desired_kappa_y)
+                bo_kappas_min_y = min_per_iteration(bo_kappas_y)
 
 
             if not attempt_minimize:
                 # generate the plot for closest kappa v iteration for both trials
-                plt.plot(iterations, random_kappas_closest, 'yo-', label = 'Random Search Closest')
-                plt.plot(iterations, bo_kappas_closest, 'bo-', label = 'Bayesian Optimization Closest')
-                plt.plot(iterations, desired_kappa * len(iterations), 'r--', label = 'Desired Kappa')
+                plt.plot(iterations, [desired_kappa_x] * len(iterations), 'r--', label = 'Desired Kx')
+                plt.plot(iterations, [desired_kappa_y] * len(iterations), 'b--', label = 'Desired Ky')   
                 if display_every_iter:
-                    plt.plot(iterations, random_kappas, 'yo', alpha = 0.5, label = 'Random Search Kappas')
-                    plt.plot(iterations, bo_kappas, 'bo', alpha = 0.5, label = 'Bayesian Optimization Kappas')
+                    plt.plot(iterations, random_kappas_x, 'ro', alpha = 0.1, label = 'Random Search Kx')
+                    plt.plot(iterations, bo_kappas_x, 'ro', alpha = 0.9, label = 'Bayesian Optimization Kx')
+                    plt.plot(iterations, random_kappas_y, 'bo', alpha = 0.1, label = 'Random Search Ky')
+                    plt.plot(iterations, bo_kappas_y, 'bo', alpha = 0.9, label = 'Bayesian Optimization Ky')
                     plt.axvspan(-0.3,num_init - 0.7, alpha = 0.3, color = 'gray', label = 'Initialization for BO')
                 plt.title("Convergence Plot")
                 plt.xlabel("Number of calls, n")
@@ -92,12 +104,18 @@ def plot_kappa_per_iteration():
 
             else:
                 # generate the plot for min kappa v iteration for both trials
-                plt.plot(iterations, random_kappas_min, 'yo-', label = 'Random Search Minimum')
-                plt.plot(iterations, bo_kappas_min, 'bo-', label = 'Bayesian Optimization Minimum')
-                if display_every_iter:
-                    plt.plot(iterations, random_kappas, 'yo', alpha = 0.5, label = 'Random Search Kappas')
-                    plt.plot(iterations, bo_kappas, 'bo', alpha = 0.5, label = 'Bayesian Optimization Kappas')
-                    plt.axvspan(-0.3,num_init - 0.7, alpha = 0.3, color = 'gray', label = 'Initialization for BO')
+                plt.plot(iterations, random_kappas_x, 'ro', alpha = 0.1, label = 'Random Search Kx')
+                plt.plot(iterations, bo_kappas_x, 'ro', alpha = 0.9, label = 'Bayesian Optimization Kx')
+                plt.plot(iterations, random_kappas_y, 'bo', alpha = 0.1, label = 'Random Search Ky')
+                plt.plot(iterations, bo_kappas_y, 'bo', alpha = 0.9, label = 'Bayesian Optimization Ky')
+
+                plt.plot(iterations, random_kappas_min_x, 'r--', alpha = 0.1, label = 'RS Kx Min')
+                plt.plot(iterations, bo_kappas_min_x, 'r--', alpha = 0.9, label = 'BO Kx Min')
+                plt.plot(iterations, random_kappas_min_y, 'b--', alpha = 0.1, label = 'RS Ky Min')
+                plt.plot(iterations, bo_kappas_min_y, 'b--', alpha = 0.9, label = 'BO Ky Min')
+
+
+                plt.axvspan(-0.3,num_init - 0.7, alpha = 0.3, color = 'gray', label = 'Initialization for BO')
                 plt.title("Minimum Kappa Per Iteration")
                 plt.xlabel("Number of calls, n")
                 plt.ylabel("Min Kappa after n calls")
@@ -151,7 +169,6 @@ def plot_trends_for_trials():
     plt.ylabel('Min Kappa')
     plt.title('Kappa vs Number of Pores and Porosity')
     plt.savefig('plots/plot_trials_random.png')
-
 
 
 if __name__ == '__main__':

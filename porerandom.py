@@ -14,7 +14,8 @@ if __name__ == "__main__":
     num_trials = params['num_iters']
     tested_num_pores = params['tested_num_pores']
     tested_porosities = params['tested_porosities']
-    desired_kappa = params['desired_kappa']
+    desired_kappa_x = params['desired_kappa_x']
+    desired_kappa_y = params['desired_kappa_y']
 
     for num_pores in tested_num_pores:
         for porosity in tested_porosities:
@@ -33,7 +34,7 @@ if __name__ == "__main__":
                     samples = [samples]
                 for sample in samples:
                     try:
-                        kappa = f(sample, num_pores, porosity, desired_kappa = desired_kappa)
+                        kappa = f(sample, num_pores, porosity, desired_kappa_x = desired_kappa_x, desired_kappa_y = desired_kappa_y)
                         kappa_per_iteration.append(kappa)
                         if kappa < min_kappa or not config:
                             min_kappa = kappa
