@@ -1,4 +1,3 @@
-from os import mkdir
 import numpy as np
 
 def reflect(x_shift: float, y_shift: float, side_len: float, len_x: float, len_y: float) -> list:
@@ -196,31 +195,3 @@ def config(x_len: float, y_len: float, side_len: float, num_pores: int, buffer_l
 
 if __name__ == '__main__':
     pass
-    '''
-    x_length = 200
-    y_length = 170
-    side_length = 8
-    number_pores = 15
-    buffer_length = 5
-    step = 10
-
-    poly_list, poly_centers = config(x_len=x_length, y_len=y_length, side_len=side_length,
-                       num_pores=number_pores, buffer_len=buffer_length)
-
-    # Create the geometry
-    geo = Geometry(model='custom', lx=x_length, ly=y_length, step=step, polygons=poly_list,
-                   applied_gradient=[1,0], boundary=['Periodic', 'Periodic'],
-                   relative=False, delete_gmsh_files=False)
-
-    # Create the material
-    mat = Material(source='database',model='rta2DSym',filename='rta_Si_300',temperature=300)
-
-    # Solve BTE
-    sol = Solver(verbose=True,max_bte_iter=30,only_fourier=False)
-
-    # Plot the outputs
-    plot_bte = Plot(model='solver',show=False)
-
-    # Returns kappa
-    np.savetxt('kappa.out', sol['kappa'])
-    '''
